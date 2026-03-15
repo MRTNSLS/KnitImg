@@ -36,7 +36,9 @@ python main.py
    - **Reduce Colors** to a custom palette (option 4) with optional dithering.
 3. Click **Apply Functions** to process, then **Export to PNG**.
 
-![KnitImg Screenshot](docs/screenshots/app_screenshot.png)
+<p align="center">
+  <img src="docs/screenshots/app_screenshot.png" width="100%" style="max-width: 900px;" alt="KnitImg Screenshot">
+</p>
 
 > **Tip:** Click the **✎ Edit** button on any color to choose a new custom color from the full-spectrum picker.
 
