@@ -11,7 +11,7 @@ Once processed, you can export your optimized design for knitting directly to a 
 ## Installation 
 
 ### Standalone (Recommended)
-You can directly download the compiled standalone application from the **[Releases](../../releases)** page.
+You can directly download the compiled standalone application from the **[Releases](../../releases)** page. 
 - `KnitImg-windows.zip` for Windows (.exe)
 - `KnitImg-macos.tar.gz` for macOS (.app)
 - `KnitImg-linux.tar.gz` for Linux
