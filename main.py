@@ -102,6 +102,7 @@ class KnitImgApp(ctk.CTk):
         
         self.original_label = ctk.CTkLabel(self.left_frame, text="Original Image", fg_color="gray30", corner_radius=6)
         self.original_label.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+        self.original_label.bind("<Configure>", lambda e: self._redraw_label("original"))
 
     def setup_middle_panel(self):
         self.mid_frame = ctk.CTkFrame(self)
@@ -206,6 +207,7 @@ class KnitImgApp(ctk.CTk):
         
         self.result_label = ctk.CTkLabel(self.right_frame, text="Result Image", fg_color="gray30", corner_radius=6)
         self.result_label.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+        self.result_label.bind("<Configure>", lambda e: self._redraw_label("result"))
 
     def choose_color(self, idx):
         # Initial color for chooser
@@ -219,6 +221,13 @@ class KnitImgApp(ctk.CTk):
             self.color_values[idx] = rgb
             self.color_buttons[idx].configure(fg_color=color_code, hover_color=color_code)
 
+    def _redraw_label(self, which):
+        """Called when a label is resized. Redraws the image to fill the new space."""
+        if which == "original" and self.original_image:
+            self.display_image(self.original_image, self.original_label, "Original Image")
+        elif which == "result" and self.processed_image:
+            self.display_image(self.processed_image, self.result_label, "Result Image")
+
     def import_image(self):
         file_path = native_askopenfilename(
             title="Select Image",
@@ -228,7 +237,7 @@ class KnitImgApp(ctk.CTk):
             try:
                 self.original_image_path = file_path
                 self.original_image = Image.open(file_path).convert("RGBA")
-                self.display_image(self.original_image, self.original_label, "Original Image", self.original_label)
+                self.display_image(self.original_image, self.original_label, "Original Image")
                 # Reset processed image
                 self.processed_image = None
                 self.result_label.configure(image="", text="Result Image")
@@ -236,19 +245,18 @@ class KnitImgApp(ctk.CTk):
             except Exception as e:
                 native_messagebox("error", "Error", f"Failed to open image:\n{e}")
 
-    def display_image(self, img, label_widget, default_text="", size_ref=None):
+    def display_image(self, img, label_widget, default_text=""):
         if img is None:
             label_widget.configure(image="", text=default_text)
             return
 
-        # Measure the label widget to determine how much space is available
-        label_widget.update_idletasks()
+        # Measure the label itself — it fills the full frame via nsew
         w = label_widget.winfo_width()
         h = label_widget.winfo_height()
         
         # Sensible fallbacks during startup before layout is complete
-        display_width = w if w > 50 else 300
-        display_height = h if h > 50 else 400
+        display_width = w if w > 50 else 400
+        display_height = h if h > 50 else 500
             
         display_size = (display_width, display_height)
         img_copy = img.copy()
@@ -355,7 +363,7 @@ class KnitImgApp(ctk.CTk):
                 img = img.convert("RGB")
 
         self.processed_image = img
-        self.display_image(self.processed_image, self.result_label, "Result Image", self.result_label)
+        self.display_image(self.processed_image, self.result_label, "Result Image")
         self.export_btn.configure(state="normal")
 
     def export_image(self):
