@@ -89,6 +89,8 @@ class KnitImgApp(ctk.CTk):
         self.original_image = None
         self.processed_image = None
         
+        self.setup_left_panel()
+        self.setup_middle_panel()
         self.setup_right_panel()
 
     def _bind_mousewheel_recursive(self, widget):
