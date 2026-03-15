@@ -14,8 +14,22 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        # Build across all 3 operating systems
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+          - os: ubuntu-24.04-arm
+            platform: linux
+            arch: arm64
+          - os: macos-13
+            platform: macos
+            arch: x64
+          - os: macos-latest
+            platform: macos
+            arch: arm64
+          - os: windows-latest
+            platform: windows
+            arch: x64
 
     steps:
     - uses: actions/checkout@v4
@@ -43,26 +57,26 @@ jobs:
       if: runner.os == 'Windows'
       run: .\build.bat
       
-    - name: Archive application (Ubuntu)
-      if: runner.os == 'Linux'
+    - name: Archive application (Linux)
+      if: matrix.platform == 'linux'
       run: |
         cd dist
-        tar -czvf KnitImg-linux.tar.gz KnitImg/
-        echo "RELEASE_FILE=dist/KnitImg-linux.tar.gz" >> $GITHUB_ENV
+        tar -czvf KnitImg-linux-${{ matrix.arch }}.tar.gz KnitImg/
+        echo "RELEASE_FILE=dist/KnitImg-linux-${{ matrix.arch }}.tar.gz" >> $GITHUB_ENV
         
     - name: Archive application (macOS)
-      if: runner.os == 'macOS'
+      if: matrix.platform == 'macos'
       run: |
         cd dist
-        tar -czvf KnitImg-macos.tar.gz KnitImg/
-        echo "RELEASE_FILE=dist/KnitImg-macos.tar.gz" >> $GITHUB_ENV
+        tar -czvf KnitImg-macos-${{ matrix.arch }}.tar.gz KnitImg/
+        echo "RELEASE_FILE=dist/KnitImg-macos-${{ matrix.arch }}.tar.gz" >> $GITHUB_ENV
         
     - name: Archive application (Windows)
-      if: runner.os == 'Windows'
+      if: matrix.platform == 'windows'
       run: |
         cd dist
-        Compress-Archive -Path KnitImg -DestinationPath KnitImg-windows.zip
-        echo "RELEASE_FILE=dist/KnitImg-windows.zip" >> $env:GITHUB_ENV
+        Compress-Archive -Path KnitImg -DestinationPath KnitImg-windows-${{ matrix.arch }}.zip
+        echo "RELEASE_FILE=dist/KnitImg-windows-${{ matrix.arch }}.zip" >> $env:GITHUB_ENV
         
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2

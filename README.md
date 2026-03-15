@@ -11,10 +11,15 @@ Once processed, you can export your optimized design for knitting directly to a 
 ## Installation 
 
 ### Standalone (Recommended)
-You can directly download the compiled standalone application from the **[Releases](../../releases)** page. 
-- `KnitImg-windows.zip` for Windows (.exe)
-- `KnitImg-macos.tar.gz` for macOS (.app)
-- `KnitImg-linux.tar.gz` for Linux
+You can directly download the compiled standalone application from the **[Releases](../../releases)** page.
+
+- **Windows**: [KnitImg-windows-x64.zip](../../releases/latest/download/KnitImg-windows-x64.zip)
+- **macOS**:
+  - [KnitImg-macos-arm64.tar.gz](../../releases/latest/download/KnitImg-macos-arm64.tar.gz) (Apple Silicon)
+  - [KnitImg-macos-x64.tar.gz](../../releases/latest/download/KnitImg-macos-x64.tar.gz) (Intel)
+- **Linux**:
+  - [KnitImg-linux-x64.tar.gz](../../releases/latest/download/KnitImg-linux-x64.tar.gz)
+  - [KnitImg-linux-arm64.tar.gz](../../releases/latest/download/KnitImg-linux-arm64.tar.gz)
 
 Just download, extract, and run!
 
