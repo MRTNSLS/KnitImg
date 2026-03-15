@@ -222,11 +222,22 @@ class KnitImgApp(ctk.CTk):
             self.color_buttons[idx].configure(fg_color=color_code, hover_color=color_code)
 
     def _redraw_label(self, which):
-        """Called when a label is resized. Redraws the image to fill the new space."""
-        if which == "original" and self.original_image:
-            self.display_image(self.original_image, self.original_label, "Original Image")
-        elif which == "result" and self.processed_image:
-            self.display_image(self.processed_image, self.result_label, "Result Image")
+        """Called when a label is resized. Redraws both image labels with the same shared display size."""
+        # Compute the shared bounds from both label dimensions
+        lw = self.original_label.winfo_width()
+        lh = self.original_label.winfo_height()
+        rw = self.result_label.winfo_width()
+        rh = self.result_label.winfo_height()
+        
+        # Use the minimum of both to keep them identical
+        shared_w = min(lw, rw) if min(lw, rw) > 50 else 400
+        shared_h = min(lh, rh) if min(lh, rh) > 50 else 500
+        shared_size = (shared_w, shared_h)
+        
+        if self.original_image:
+            self.display_image(self.original_image, self.original_label, "Original Image", shared_size)
+        if self.processed_image:
+            self.display_image(self.processed_image, self.result_label, "Result Image", shared_size)
 
     def import_image(self):
         file_path = native_askopenfilename(
@@ -245,20 +256,16 @@ class KnitImgApp(ctk.CTk):
             except Exception as e:
                 native_messagebox("error", "Error", f"Failed to open image:\n{e}")
 
-    def display_image(self, img, label_widget, default_text=""):
+    def display_image(self, img, label_widget, default_text="", display_size=None):
         if img is None:
             label_widget.configure(image="", text=default_text)
             return
 
-        # Measure the label itself — it fills the full frame via nsew
-        w = label_widget.winfo_width()
-        h = label_widget.winfo_height()
-        
-        # Sensible fallbacks during startup before layout is complete
-        display_width = w if w > 50 else 400
-        display_height = h if h > 50 else 500
-            
-        display_size = (display_width, display_height)
+        if display_size is None:
+            # Measure the label itself — it fills the full frame via nsew
+            w = label_widget.winfo_width()
+            h = label_widget.winfo_height()
+            display_size = (w if w > 50 else 400, h if h > 50 else 500)
         img_copy = img.copy()
         
         # For '1' mode (B&W or Palette), convert back to RGB to display properly in tk/ctk
