@@ -257,14 +257,14 @@ class KnitImgApp(ctk.CTk):
                 self.display_image(self.original_image, self.original_label, "Original Image")
                 # Reset processed image
                 self.processed_image = None
-                self.result_label.configure(image="", text="Result Image")
+                self.result_label.configure(image=None, text="Result Image")
                 self.export_btn.configure(state="disabled")
             except Exception as e:
                 native_messagebox("error", "Error", f"Failed to open image:\n{e}")
 
     def display_image(self, img, label_widget, default_text=""):
         if img is None:
-            label_widget.configure(image="", text=default_text)
+            label_widget.configure(image=None, text=default_text)
             return
 
         display_size = (300, 400) # Fixed bounding box for thumbnail
