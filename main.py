@@ -123,9 +123,9 @@ class KnitImgApp(ctk.CTk):
         self.rotate_option.grid(row=row_idx, column=0, padx=50, pady=(0, 10), sticky="w")
         row_idx += 1
         
-        # 1b. Mirror
+        # 2. Mirror
         self.mirror_var = ctk.BooleanVar(value=False)
-        self.mirror_cb = ctk.CTkCheckBox(self.mid_frame, text="1b. Mirror Image", variable=self.mirror_var, font=ctk.CTkFont(weight="bold"))
+        self.mirror_cb = ctk.CTkCheckBox(self.mid_frame, text="2. Mirror Image", variable=self.mirror_var, font=ctk.CTkFont(weight="bold"))
         self.mirror_cb.grid(row=row_idx, column=0, padx=20, pady=10, sticky="w")
         row_idx += 1
         
@@ -134,9 +134,9 @@ class KnitImgApp(ctk.CTk):
         self.mirror_option.grid(row=row_idx, column=0, padx=50, pady=(0, 10), sticky="w")
         row_idx += 1
         
-        # 2. Scale
+        # 3. Scale
         self.scale_var = ctk.BooleanVar(value=False)
-        self.scale_cb = ctk.CTkCheckBox(self.mid_frame, text="2. Scale Image", variable=self.scale_var, font=ctk.CTkFont(weight="bold"))
+        self.scale_cb = ctk.CTkCheckBox(self.mid_frame, text="3. Scale Image", variable=self.scale_var, font=ctk.CTkFont(weight="bold"))
         self.scale_cb.grid(row=row_idx, column=0, padx=20, pady=(15, 10), sticky="w")
         row_idx += 1
         
@@ -158,9 +158,9 @@ class KnitImgApp(ctk.CTk):
         self.shrink_factor_entry.insert(0, "1.5")
         self.shrink_factor_entry.grid(row=2, column=1, padx=10, pady=5, sticky="w")
         
-        # 3. Reduce Colors
+        # 4. Reduce Colors
         self.reduce_var = ctk.BooleanVar(value=False)
-        self.reduce_cb = ctk.CTkCheckBox(self.mid_frame, text="3. Reduce Colors", variable=self.reduce_var, font=ctk.CTkFont(weight="bold"))
+        self.reduce_cb = ctk.CTkCheckBox(self.mid_frame, text="4. Reduce Colors", variable=self.reduce_var, font=ctk.CTkFont(weight="bold"))
         self.reduce_cb.grid(row=row_idx, column=0, padx=20, pady=(25, 10), sticky="w")
         row_idx += 1
         
@@ -286,7 +286,7 @@ class KnitImgApp(ctk.CTk):
             elif angle_str == "270":
                 img = img.transpose(Image.Transpose.ROTATE_90)  # 270 degrees clockwise = 90 deg CCW
 
-        # 1b. Mirror
+        # 2. Mirror
         if self.mirror_var.get():
             mirror_str = self.mirror_option.get()
             if mirror_str == "Left-Right":
@@ -294,7 +294,7 @@ class KnitImgApp(ctk.CTk):
             elif mirror_str == "Top-Bottom":
                 img = img.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
 
-        # 2. Scale
+        # 3. Scale
         if self.scale_var.get():
             try:
                 max_width = int(self.scale_width_entry.get())
@@ -321,7 +321,7 @@ class KnitImgApp(ctk.CTk):
                 new_height = max(1, new_height)
                 img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
 
-        # 3. Reduce Colors
+        # 4. Reduce Colors
         if self.reduce_var.get():
             dither_mode_str = self.reduce_dither_option.get()
             

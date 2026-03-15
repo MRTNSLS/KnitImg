@@ -31,9 +31,9 @@ python main.py
 
 1. Click **Import Image** to load your design.
 2. Use the **Functions** panel to:
-   - **Rotate/Mirror** your image.
-   - **Scale** it for your machine's needle count (with optional vertical stitch compensation).
-   - **Reduce Colors** to a custom palette (up to 6 colors) with optional dithering.
+   - **Rotate/Mirror** (options 1 & 2).
+   - **Scale** it for your machine's needle count (option 3).
+   - **Reduce Colors** to a custom palette (option 4) with optional dithering.
 3. Click **Apply Functions** to process, then **Export to PNG**.
 
 ![KnitImg Screenshot](docs/screenshots/app_screenshot.png)
