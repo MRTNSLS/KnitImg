@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, colorchooser
 from PIL import Image, ImageTk
 import os
 import sys
@@ -146,19 +146,46 @@ class KnitImgApp(ctk.CTk):
         self.shrink_factor_entry.insert(0, "1.5")
         self.shrink_factor_entry.grid(row=2, column=1, padx=10, pady=5, sticky="w")
         
-        # 3. Black and White
-        self.bw_var = ctk.BooleanVar(value=False)
-        self.bw_cb = ctk.CTkCheckBox(self.mid_frame, text="3. Black and White", variable=self.bw_var, font=ctk.CTkFont(weight="bold"))
-        self.bw_cb.grid(row=row_idx, column=0, padx=20, pady=(25, 10), sticky="w")
+        # 3. Reduce Colors
+        self.reduce_var = ctk.BooleanVar(value=False)
+        self.reduce_cb = ctk.CTkCheckBox(self.mid_frame, text="3. Reduce Colors", variable=self.reduce_var, font=ctk.CTkFont(weight="bold"))
+        self.reduce_cb.grid(row=row_idx, column=0, padx=20, pady=(25, 10), sticky="w")
         row_idx += 1
         
-        bw_param_frame = ctk.CTkFrame(self.mid_frame, fg_color="transparent")
-        bw_param_frame.grid(row=row_idx, column=0, padx=50, sticky="w")
+        reduce_param_frame = ctk.CTkFrame(self.mid_frame, fg_color="transparent")
+        reduce_param_frame.grid(row=row_idx, column=0, padx=40, sticky="w")
         row_idx += 1
         
-        ctk.CTkLabel(bw_param_frame, text="Dithering:").grid(row=0, column=0, pady=(0, 10), sticky="w")
-        self.bw_dither_option = ctk.CTkOptionMenu(bw_param_frame, values=["Floyd-Steinberg", "None"])
-        self.bw_dither_option.grid(row=0, column=1, padx=10, pady=(0, 10), sticky="w")
+        ctk.CTkLabel(reduce_param_frame, text="Dithering:").grid(row=0, column=0, pady=(0, 10), sticky="w")
+        self.reduce_dither_option = ctk.CTkOptionMenu(reduce_param_frame, values=["None", "Floyd-Steinberg"])
+        self.reduce_dither_option.grid(row=0, column=1, padx=10, pady=(0, 10), sticky="w")
+        
+        # Color palette setup
+        self.color_vars = []
+        self.color_buttons = []
+        self.color_values = [] # Store RGB tuples
+        
+        # Default 6 colors: Black, White, Red, Green, Blue, Yellow
+        default_colors = [(0, 0, 0), (255, 255, 255), (255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0)]
+        
+        for i in range(6):
+            # First two are checked by default
+            var = ctk.BooleanVar(value=(i < 2))
+            rgb = default_colors[i]
+            hex_color = '#%02x%02x%02x' % rgb
+            self.color_vars.append(var)
+            self.color_values.append(rgb)
+            
+            row_f = ctk.CTkFrame(reduce_param_frame, fg_color="transparent")
+            row_f.grid(row=i+1, column=0, columnspan=2, sticky="w", pady=2)
+            
+            cb = ctk.CTkCheckBox(row_f, text=f"Color {i+1}", variable=var, width=80)
+            cb.grid(row=0, column=0, sticky="w")
+            
+            # Using standard tkinter button inside ctkframe for easier dynamic background color
+            btn = ctk.CTkButton(row_f, text="", width=40, height=20, fg_color=hex_color, hover_color=hex_color, corner_radius=0, border_width=1, border_color="gray", command=lambda idx=i: self.choose_color(idx))
+            btn.grid(row=0, column=1, padx=10)
+            self.color_buttons.append(btn)
         
         # Spacer
         self.mid_frame.grid_rowconfigure(row_idx, weight=1)
@@ -178,6 +205,17 @@ class KnitImgApp(ctk.CTk):
         
         self.result_label = ctk.CTkLabel(self.right_frame, text="Result Image", fg_color="gray30", corner_radius=6)
         self.result_label.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+
+    def choose_color(self, idx):
+        # Initial color for chooser
+        initial_color = '#%02x%02x%02x' % self.color_values[idx]
+        color_code = colorchooser.askcolor(title=f"Choose Color {idx+1}", initialcolor=initial_color)
+        if color_code and color_code[0] and color_code[1]:
+            # color_code[0] is RGB tuple e.g., (255, 0, 0)
+            # color_code[1] is Hex string e.g., '#ff0000'
+            rgb = tuple(int(x) for x in color_code[0])
+            self.color_values[idx] = rgb
+            self.color_buttons[idx].configure(fg_color=color_code[1], hover_color=color_code[1])
 
     def import_image(self):
         file_path = native_askopenfilename(
@@ -260,24 +298,52 @@ class KnitImgApp(ctk.CTk):
                 new_height = max(1, new_height)
                 img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
 
-        # 3. Black and White
-        if self.bw_var.get():
-            dither_mode = self.bw_dither_option.get()
+        # 3. Reduce Colors
+        if self.reduce_var.get():
+            dither_mode_str = self.reduce_dither_option.get()
             
             # Composite onto white background in case of transparent pixels
             if img.mode == 'RGBA':
                 background = Image.new('RGB', img.size, (255, 255, 255))
-                # using the alpha layer as the paste mask
                 alpha = img.split()[3]
                 background.paste(img, mask=alpha)
                 img = background
-            
-            # Convert to Greyscale first to normalize
-            img = img.convert("L")
-            if dither_mode == "Floyd-Steinberg":
-                img = img.convert("1", dither=Image.Dither.FLOYDSTEINBERG)
+            elif img.mode != 'RGB':
+                img = img.convert('RGB')
+                
+            # Gather active colors
+            active_colors = []
+            for i in range(6):
+                if self.color_vars[i].get():
+                    active_colors.append(self.color_values[i])
+                    
+            if not active_colors:
+                native_messagebox("warning", "Warning", "Reduce Colors is enabled but no colors are selected. Skipping step.")
             else:
-                img = img.convert("1", dither=Image.Dither.NONE)
+                # Create a 1x1 base P mode image
+                base_p = Image.new("P", (1, 1))
+                # Flat list of r,g,b values
+                palette_data = []
+                for color in active_colors:
+                    palette_data.extend(color)
+                    
+                # Pad to 256 colors (768 flat list items)
+                # Pillow requires a full 256 color palette to quantize against
+                while len(palette_data) < 768:
+                    palette_data.extend(active_colors[0]) # Pad with the first chosen color
+                    
+                base_p.putpalette(palette_data)
+                
+                # Apply quantization
+                # Image.Dither.FLOYDSTEINBERG is 3, Image.Dither.NONE is 0
+                dither_flag = Image.Dither.FLOYDSTEINBERG if dither_mode_str == "Floyd-Steinberg" else Image.Dither.NONE
+                
+                # Quantize allows us to map our RGB image to the exact palette defined in base_p
+                # Setting dither to the respective flag calculates the mapping dynamically
+                img = img.quantize(palette=base_p, dither=dither_flag)
+                
+                # Convert back to RGB for display purposes, since P mode doesn't always render correctly in tkinter
+                img = img.convert("RGB")
 
         self.processed_image = img
         self.display_image(self.processed_image, self.result_label, "Result Image")
