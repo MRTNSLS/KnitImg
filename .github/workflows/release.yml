@@ -41,7 +41,7 @@ jobs:
       
     - name: Build with PyInstaller (Windows)
       if: runner.os == 'Windows'
-      run: build.bat
+      run: .\build.bat
       
     - name: Archive application (Ubuntu)
       if: runner.os == 'Linux'
