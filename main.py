@@ -7,6 +7,7 @@ import sys
 import subprocess
 import numpy as np
 import threading
+from processor import ImageProcessor
 
 def native_askopenfilename(**kwargs):
     if sys.platform.startswith("linux"):
@@ -327,87 +328,39 @@ class KnitImgApp(ctk.CTk):
         try:
             img = self.original_image.copy()
             
-            # 1. Rotate
-            if self.rotate_var.get():
-                angle_str = self.rotate_option.get()
-                if angle_str == "90":
-                    img = img.transpose(Image.Transpose.ROTATE_270) # 90 degrees clockwise
-                elif angle_str == "180":
-                    img = img.transpose(Image.Transpose.ROTATE_180) # 180 degrees
-                elif angle_str == "270":
-                    img = img.transpose(Image.Transpose.ROTATE_90)  # 270 degrees clockwise = 90 deg CCW
-
-            # 2. Mirror
-            if self.mirror_var.get():
-                mirror_str = self.mirror_option.get()
-                if mirror_str == "Left-Right":
-                    img = img.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
-                elif mirror_str == "Top-Bottom":
-                    img = img.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
-
-            # 3. Scale
-            if self.scale_var.get():
-                try:
-                    max_width = int(self.scale_width_entry.get())
-                    if max_width <= 0: raise ValueError
-                except ValueError:
-                    self.after(0, lambda: native_messagebox("error", "Error", "Max width must be a positive integer."))
-                    self.after(0, self._reset_ui_after_processing)
-                    return
-                    
-                original_width, original_height = img.size
-                if original_width != max_width or self.shrink_var.get(): 
-                    ratio = max_width / float(original_width)
-                    new_height = int(float(original_height) * float(ratio))
-                    
-                    if self.shrink_var.get():
-                        try:
-                            factor = float(self.shrink_factor_entry.get())
-                            if factor <= 0: raise ValueError
-                        except ValueError:
-                            self.after(0, lambda: native_messagebox("error", "Error", "Vertical shrink factor must be a positive number."))
-                            self.after(0, self._reset_ui_after_processing)
-                            return
-                        new_height = int(new_height / factor)
-                        
-                    new_height = max(1, new_height)
-                    img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
-
-            # 4. Reduce Colors
+            # Prepare active colors
+            active_colors = []
             if self.reduce_var.get():
-                dither_mode_str = self.reduce_dither_option.get()
-                
-                if img.mode == 'RGBA':
-                    background = Image.new('RGB', img.size, (255, 255, 255))
-                    alpha = img.split()[3]
-                    background.paste(img, mask=alpha)
-                    img = background
-                elif img.mode != 'RGB':
-                    img = img.convert('RGB')
-                    
-                active_colors = []
                 for i in range(6):
                     if self.color_vars[i].get():
                         active_colors.append(self.color_values[i])
-                        
-                if not active_colors:
-                    self.after(0, lambda: native_messagebox("warning", "Warning", "Reduce Colors enabled but no colors selected."))
-                else:
-                    base_p = Image.new("P", (1, 1))
-                    palette_data = []
-                    for color in active_colors:
-                        palette_data.extend(color)
-                    while len(palette_data) < 768:
-                        palette_data.extend(active_colors[0])
-                    base_p.putpalette(palette_data)
-                    
-                    if dither_mode_str in ["Floyd-Steinberg", "None"]:
-                        dither_flag = Image.Dither.FLOYDSTEINBERG if dither_mode_str == "Floyd-Steinberg" else Image.Dither.NONE
-                        img = img.quantize(palette=base_p, dither=dither_flag)
-                    else:
-                        img = self.run_custom_dithering(img, active_colors, dither_mode_str)
-                    
-                    img = img.convert("RGB")
+            
+            # Extract parameters for the processor
+            try:
+                max_width = int(self.scale_width_entry.get())
+            except ValueError:
+                max_width = 200 # Fallback
+                
+            try:
+                shrink_factor = float(self.shrink_factor_entry.get())
+            except ValueError:
+                shrink_factor = 1.5 # Fallback
+
+            # Use the shared engine
+            img = ImageProcessor.process(
+                img,
+                rotate_enabled=self.rotate_var.get(),
+                rotate_angle=self.rotate_option.get(),
+                mirror_enabled=self.mirror_var.get(),
+                mirror_mode=self.mirror_option.get(),
+                scale_enabled=self.scale_var.get(),
+                max_width=max_width,
+                shrink_enabled=self.shrink_var.get(),
+                shrink_factor=shrink_factor,
+                reduce_enabled=self.reduce_var.get(),
+                dither_mode=self.reduce_dither_option.get(),
+                active_colors=active_colors
+            )
 
             # Finalize on main thread
             self.after(0, lambda: self._finalize_processing(img))
@@ -428,75 +381,6 @@ class KnitImgApp(ctk.CTk):
         if self.processed_image is not None:
             self.export_btn.configure(state="normal")
 
-    def run_custom_dithering(self, img, palette, mode):
-        """Custom error diffusion dithering implementation using NumPy."""
-        # Convert image to float32 NumPy array for error calculations
-        arr = np.array(img, dtype=np.float32)
-        h, w, c = arr.shape
-        palette = np.array(palette, dtype=np.float32)
-        
-        if "Ordered" in mode:
-            # Bayer 4x4 Matrix
-            bayer_matrix = np.array([
-                [ 0,  8,  2, 10],
-                [12,  4, 14,  6],
-                [ 3, 11,  1,  9],
-                [15,  7, 13,  5]
-            ], dtype=np.float32) / 16.0 - 0.5 # Center at 0
-            
-            # Tile the pattern across the image
-            # Ordered dithering effect: slightly perturb the color before choosing closest to create pattern
-            # Increase spread for more visibility (scaled by intensity)
-            spread = 64.0 
-            for y in range(h):
-                for x in range(w):
-                    perturb = bayer_matrix[y % 4, x % 4] * spread
-                    old_pixel = arr[y, x] + perturb
-                    dist = np.sum((palette - old_pixel)**2, axis=1)
-                    arr[y, x] = palette[np.argmin(dist)]
-            return Image.fromarray(arr.astype(np.uint8))
-
-        # Error diffusion setups
-        # kernels: (dy, dx, weight)
-        if mode == "Atkinson":
-            # Atkinson: 1/8 each to (x+1,y), (x+2,y), (x-1,y+1), (x,y+1), (x+1,y+1), (x,y+2)
-            kernel = [(0, 1, 1/8), (0, 2, 1/8), (1, -1, 1/8), (1, 0, 1/8), (1, 1, 1/8), (2, 0, 1/8)]
-        elif mode == "Stucki":
-            kernel = [(0, 1, 8/42), (0, 2, 4/42),
-                      (1, -2, 2/42), (1, -1, 4/42), (1, 0, 8/42), (1, 1, 4/42), (1, 2, 2/42),
-                      (2, -2, 1/42), (2, -1, 2/42), (2, 0, 4/42), (2, 1, 2/42), (2, 2, 1/42)]
-        elif mode == "Jarvis-Judice-Ninke":
-            kernel = [(0, 1, 7/48), (0, 2, 5/48),
-                      (1, -2, 3/48), (1, -1, 5/48), (1, 0, 7/48), (1, 1, 5/48), (1, 2, 3/48),
-                      (2, -2, 1/48), (2, -1, 3/48), (2, 0, 5/48), (2, 1, 3/48), (2, 2, 1/48)]
-        elif mode == "Sierra":
-            kernel = [(0, 1, 5/32), (0, 2, 3/32),
-                      (1, -2, 2/32), (1, -1, 4/32), (1, 0, 5/32), (1, 1, 4/32), (1, 2, 2/32),
-                      (2, -1, 2/32), (2, 0, 3/32), (2, 1, 2/32)]
-        elif mode == "Sierra Lite":
-            kernel = [(0, 1, 2/4), (1, -1, 1/4), (1, 0, 1/4)]
-        else:
-            return Image.fromarray(arr.astype(np.uint8))
-
-        # Diffusion loop
-        for y in range(h):
-            for x in range(w):
-                old_pixel = arr[y, x].copy()
-                # Closest color in palette
-                dist = np.sum((palette - old_pixel)**2, axis=1)
-                new_pixel = palette[np.argmin(dist)]
-                arr[y, x] = new_pixel
-                
-                # Calculate error
-                error = old_pixel - new_pixel
-                
-                # Diffuse
-                for dy, dx, weight in kernel:
-                    ny, nx = y + dy, x + dx
-                    if 0 <= ny < h and 0 <= nx < w:
-                        arr[ny, nx] += error * weight
-                        
-        return Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8))
 
     def export_image(self):
         if self.processed_image is None:

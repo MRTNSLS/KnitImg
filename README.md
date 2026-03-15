@@ -16,9 +16,18 @@ You can directly download the compiled standalone application from the **[Releas
 - **Windows**: [KnitImg-windows-x64.zip](../../releases/latest/download/KnitImg-windows-x64.zip)
 - **macOS**:
   - [KnitImg-macos-arm64.tar.gz](../../releases/latest/download/KnitImg-macos-arm64.tar.gz) (Apple Silicon)
-- **Linux**:
-  - [KnitImg-linux-x64.tar.gz](../../releases/latest/download/KnitImg-linux-x64.tar.gz)
-  - [KnitImg-linux-arm64.tar.gz](../../releases/latest/download/KnitImg-linux-arm64.tar.gz)
+- **Linux**: [KnitImg-linux-x64.tar.gz](../../releases/latest/download/KnitImg-linux-x64.tar.gz) / [KnitImg-linux-arm64.tar.gz](../../releases/latest/download/KnitImg-linux-arm64.tar.gz)
+
+### Online Prototype (Streamlit)
+You can also run a web-based version of KnitImg! This is perfect for quick tests or for users who cannot run the standalone application.
+
+To run locally:
+1. `pip install -r requirements.txt`
+2. `streamlit run streamlit_app.py`
+
+This will open the application in your default web browser.
+
+---
 
 Just download, extract, and run!
 
