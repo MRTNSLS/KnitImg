@@ -89,9 +89,30 @@ class KnitImgApp(ctk.CTk):
         self.original_image = None
         self.processed_image = None
         
-        self.setup_left_panel()
-        self.setup_middle_panel()
         self.setup_right_panel()
+
+    def _bind_mousewheel_recursive(self, widget):
+        """Recursively bind mousewheel events to a widget and all its children."""
+        # Windows/macOS
+        widget.bind("<MouseWheel>", self._on_mousewheel, add="+")
+        # Linux
+        widget.bind("<Button-4>", self._on_mousewheel, add="+")
+        widget.bind("<Button-5>", self._on_mousewheel, add="+")
+        
+        for child in widget.winfo_children():
+            self._bind_mousewheel_recursive(child)
+
+    def _on_mousewheel(self, event):
+        """Handle mousewheel events and pass them to the scrollable frame's canvas."""
+        # For CTkScrollableFrame, we need to scroll its internal canvas
+        if hasattr(self, 'mid_frame'):
+            if event.num == 4: # Linux scroll up
+                self.mid_frame._parent_canvas.yview_scroll(-1, "units")
+            elif event.num == 5: # Linux scroll down
+                self.mid_frame._parent_canvas.yview_scroll(1, "units")
+            else: # Windows/macOS
+                # event.delta is typically +/- 120 on Windows
+                self.mid_frame._parent_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
 
     def setup_left_panel(self):
         self.left_frame = ctk.CTkFrame(self)
@@ -210,6 +231,9 @@ class KnitImgApp(ctk.CTk):
         
         self.apply_btn = ctk.CTkButton(self.mid_frame, text="Apply Functions", command=self.apply_functions, height=40, font=ctk.CTkFont(weight="bold"))
         self.apply_btn.grid(row=row_idx, column=0, padx=20, pady=20, sticky="ew")
+        
+        # Apply recursive mousewheel bindings so two-finger scroll works everywhere in this panel
+        self._bind_mousewheel_recursive(self.mid_frame)
         
     def setup_right_panel(self):
         self.right_frame = ctk.CTkFrame(self)
