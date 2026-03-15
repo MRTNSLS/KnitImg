@@ -158,7 +158,8 @@ class KnitImgApp(ctk.CTk):
         row_idx += 1
         
         ctk.CTkLabel(reduce_param_frame, text="Dithering:").grid(row=0, column=0, pady=(0, 10), sticky="w")
-        self.reduce_dither_option = ctk.CTkOptionMenu(reduce_param_frame, values=["None", "Floyd-Steinberg"])
+        self.reduce_dither_option = ctk.CTkOptionMenu(reduce_param_frame, values=["Floyd-Steinberg", "None"])
+        self.reduce_dither_option.set("Floyd-Steinberg")
         self.reduce_dither_option.grid(row=0, column=1, padx=10, pady=(0, 10), sticky="w")
         
         # Color palette setup
@@ -183,8 +184,8 @@ class KnitImgApp(ctk.CTk):
             cb = ctk.CTkCheckBox(row_f, text=f"Color {i+1}", variable=var, width=80)
             cb.grid(row=0, column=0, sticky="w")
             
-            # Using standard tkinter button inside ctkframe for easier dynamic background color
-            btn = ctk.CTkButton(row_f, text="", width=40, height=20, fg_color=hex_color, hover_color=hex_color, corner_radius=0, border_width=1, border_color="gray", command=lambda idx=i: self.choose_color(idx))
+            # Color swatch button with edit label so users know it's clickable
+            btn = ctk.CTkButton(row_f, text="✎ Edit", width=70, height=22, fg_color=hex_color, hover_color=hex_color, corner_radius=4, border_width=1, border_color="gray", text_color="white" if rgb == (0,0,0) else "black", command=lambda idx=i: self.choose_color(idx))
             btn.grid(row=0, column=1, padx=10)
             self.color_buttons.append(btn)
         
@@ -217,7 +218,10 @@ class KnitImgApp(ctk.CTk):
             h = color_code.lstrip('#')
             rgb = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
             self.color_values[idx] = rgb
-            self.color_buttons[idx].configure(fg_color=color_code, hover_color=color_code)
+            # Ensure '✎ Edit' text stays readable on any background
+            brightness = 0.299*rgb[0] + 0.587*rgb[1] + 0.114*rgb[2]
+            text_color = "white" if brightness < 128 else "black"
+            self.color_buttons[idx].configure(fg_color=color_code, hover_color=color_code, text_color=text_color)
 
     def import_image(self):
         file_path = native_askopenfilename(
