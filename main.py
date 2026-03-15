@@ -123,6 +123,17 @@ class KnitImgApp(ctk.CTk):
         self.rotate_option.grid(row=row_idx, column=0, padx=50, pady=(0, 10), sticky="w")
         row_idx += 1
         
+        # 1b. Mirror
+        self.mirror_var = ctk.BooleanVar(value=False)
+        self.mirror_cb = ctk.CTkCheckBox(self.mid_frame, text="1b. Mirror Image", variable=self.mirror_var, font=ctk.CTkFont(weight="bold"))
+        self.mirror_cb.grid(row=row_idx, column=0, padx=20, pady=10, sticky="w")
+        row_idx += 1
+        
+        self.mirror_option = ctk.CTkOptionMenu(self.mid_frame, values=["Left-Right", "Top-Bottom"])
+        self.mirror_option.set("Left-Right")
+        self.mirror_option.grid(row=row_idx, column=0, padx=50, pady=(0, 10), sticky="w")
+        row_idx += 1
+        
         # 2. Scale
         self.scale_var = ctk.BooleanVar(value=False)
         self.scale_cb = ctk.CTkCheckBox(self.mid_frame, text="2. Scale Image", variable=self.scale_var, font=ctk.CTkFont(weight="bold"))
@@ -274,6 +285,14 @@ class KnitImgApp(ctk.CTk):
                 img = img.transpose(Image.Transpose.ROTATE_180) # 180 degrees
             elif angle_str == "270":
                 img = img.transpose(Image.Transpose.ROTATE_90)  # 270 degrees clockwise = 90 deg CCW
+
+        # 1b. Mirror
+        if self.mirror_var.get():
+            mirror_str = self.mirror_option.get()
+            if mirror_str == "Left-Right":
+                img = img.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+            elif mirror_str == "Top-Bottom":
+                img = img.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
 
         # 2. Scale
         if self.scale_var.get():

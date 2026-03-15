@@ -29,37 +29,16 @@ python main.py
 
 ## How to Use
 
-### Step 1 — Import your image
+1. Click **Import Image** to load your design.
+2. Use the **Functions** panel to:
+   - **Rotate/Mirror** your image.
+   - **Scale** it for your machine's needle count (with optional vertical stitch compensation).
+   - **Reduce Colors** to a custom palette (up to 6 colors) with optional dithering.
+3. Click **Apply Functions** to process, then **Export to PNG**.
 
-Click **Import Image** on the left panel and select any image file (PNG, JPG, BMP, GIF, WEBP).  
-Your original image will appear in the left panel.
+![KnitImg Screenshot](docs/screenshots/app_screenshot.png)
 
-![Import Image screenshot](docs/screenshots/01_import_image.png)
-
----
-
-### Step 2 — Set up your transformations
-
-In the central **Functions** panel, enable the steps you need by checking their checkboxes:
-
-- **1. Rotate Image** — Select 90 / 180 / 270 degrees clockwise rotation.
-- **2. Scale Image** — Set the maximum width in pixels (e.g. 200 for a typical knitting machine). Optionally enable **Shrink Vertically** to compensate for taller-than-wide stitches (default factor: 1.5).
-- **3. Reduce Colors** — Limit the output to a fixed palette. Check up to 6 colors. Click the **✎ Edit** button on a color to open a color picker and choose any custom color. Select dithering mode:  
-  - **Floyd-Steinberg** (recommended) — smooth dithering across the palette.  
-  - **None** — hard, flat quantization.
-
-![Functions panel screenshot](docs/screenshots/02_apply_functions.png)
-
----
-
-### Step 3 — Apply and export
-
-Click **Apply Functions** to process the image. Your result appears in the right panel.  
-When satisfied, click **Export to PNG** to save the finished file.
-
-![Result screenshot](docs/screenshots/03_result.png)
-
-> **Tip:** You can freely adjust the settings and click **Apply Functions** again to re-process the original image any number of times before exporting.
+> **Tip:** Click the **✎ Edit** button on any color to choose a new custom color from the full-spectrum picker.
 
 
 If you want to build the standalone executables yourself, use the provided `build.bat` (Windows) or `build.sh` (Linux/macOS) scripts.
