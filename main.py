@@ -77,10 +77,10 @@ class KnitImgApp(ctk.CTk):
         self.title("KnitImg - Machine Knitting Image Assistant")
         self.geometry("1000x650")
         
-        # Configure grid layout: left/right panels get more space than the middle controls panel
-        self.grid_columnconfigure(0, weight=2)
+        # Configure grid layout (3 columns)
+        self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
-        self.grid_columnconfigure(2, weight=2)
+        self.grid_columnconfigure(2, weight=1)
         self.grid_rowconfigure(0, weight=1)
         
         self.original_image_path = None
@@ -102,7 +102,6 @@ class KnitImgApp(ctk.CTk):
         
         self.original_label = ctk.CTkLabel(self.left_frame, text="Original Image", fg_color="gray30", corner_radius=6)
         self.original_label.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
-        self.original_label.bind("<Configure>", lambda e: self._redraw_label("original"))
 
     def setup_middle_panel(self):
         self.mid_frame = ctk.CTkFrame(self)
@@ -207,7 +206,6 @@ class KnitImgApp(ctk.CTk):
         
         self.result_label = ctk.CTkLabel(self.right_frame, text="Result Image", fg_color="gray30", corner_radius=6)
         self.result_label.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
-        self.result_label.bind("<Configure>", lambda e: self._redraw_label("result"))
 
     def choose_color(self, idx):
         # Initial color for chooser
@@ -220,24 +218,6 @@ class KnitImgApp(ctk.CTk):
             rgb = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
             self.color_values[idx] = rgb
             self.color_buttons[idx].configure(fg_color=color_code, hover_color=color_code)
-
-    def _redraw_label(self, which):
-        """Called when a label is resized. Redraws both image labels with the same shared display size."""
-        # Compute the shared bounds from both label dimensions
-        lw = self.original_label.winfo_width()
-        lh = self.original_label.winfo_height()
-        rw = self.result_label.winfo_width()
-        rh = self.result_label.winfo_height()
-        
-        # Use the minimum of both to keep them identical
-        shared_w = min(lw, rw) if min(lw, rw) > 50 else 400
-        shared_h = min(lh, rh) if min(lh, rh) > 50 else 500
-        shared_size = (shared_w, shared_h)
-        
-        if self.original_image:
-            self.display_image(self.original_image, self.original_label, "Original Image", shared_size)
-        if self.processed_image:
-            self.display_image(self.processed_image, self.result_label, "Result Image", shared_size)
 
     def import_image(self):
         file_path = native_askopenfilename(
@@ -256,16 +236,12 @@ class KnitImgApp(ctk.CTk):
             except Exception as e:
                 native_messagebox("error", "Error", f"Failed to open image:\n{e}")
 
-    def display_image(self, img, label_widget, default_text="", display_size=None):
+    def display_image(self, img, label_widget, default_text=""):
         if img is None:
             label_widget.configure(image="", text=default_text)
             return
 
-        if display_size is None:
-            # Measure the label itself — it fills the full frame via nsew
-            w = label_widget.winfo_width()
-            h = label_widget.winfo_height()
-            display_size = (w if w > 50 else 400, h if h > 50 else 500)
+        display_size = (300, 400) # Fixed bounding box for thumbnail
         img_copy = img.copy()
         
         # For '1' mode (B&W or Palette), convert back to RGB to display properly in tk/ctk
