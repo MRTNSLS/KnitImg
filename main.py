@@ -1,5 +1,6 @@
 import customtkinter as ctk
 from tkinter import filedialog, messagebox, colorchooser
+from CTkColorPicker import AskColor
 from PIL import Image, ImageTk
 import os
 import sys
@@ -76,10 +77,10 @@ class KnitImgApp(ctk.CTk):
         self.title("KnitImg - Machine Knitting Image Assistant")
         self.geometry("1000x650")
         
-        # Configure grid layout (3 columns)
-        self.grid_columnconfigure(0, weight=1)
+        # Configure grid layout: left/right panels get more space than the middle controls panel
+        self.grid_columnconfigure(0, weight=2)
         self.grid_columnconfigure(1, weight=1)
-        self.grid_columnconfigure(2, weight=1)
+        self.grid_columnconfigure(2, weight=2)
         self.grid_rowconfigure(0, weight=1)
         
         self.original_image_path = None
@@ -209,13 +210,14 @@ class KnitImgApp(ctk.CTk):
     def choose_color(self, idx):
         # Initial color for chooser
         initial_color = '#%02x%02x%02x' % self.color_values[idx]
-        color_code = colorchooser.askcolor(title=f"Choose Color {idx+1}", initialcolor=initial_color)
-        if color_code and color_code[0] and color_code[1]:
-            # color_code[0] is RGB tuple e.g., (255, 0, 0)
-            # color_code[1] is Hex string e.g., '#ff0000'
-            rgb = tuple(int(x) for x in color_code[0])
+        color_picker = AskColor(title=f"Choose Color {idx+1}", initial_color=initial_color)
+        color_code = color_picker.get() # Returns hex color string e.g., '#ff0000' or None
+        if color_code:
+            # Convert hex to RGB tuple
+            h = color_code.lstrip('#')
+            rgb = tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
             self.color_values[idx] = rgb
-            self.color_buttons[idx].configure(fg_color=color_code[1], hover_color=color_code[1])
+            self.color_buttons[idx].configure(fg_color=color_code, hover_color=color_code)
 
     def import_image(self):
         file_path = native_askopenfilename(
@@ -226,7 +228,7 @@ class KnitImgApp(ctk.CTk):
             try:
                 self.original_image_path = file_path
                 self.original_image = Image.open(file_path).convert("RGBA")
-                self.display_image(self.original_image, self.original_label, "Original Image")
+                self.display_image(self.original_image, self.original_label, "Original Image", self.original_label)
                 # Reset processed image
                 self.processed_image = None
                 self.result_label.configure(image="", text="Result Image")
@@ -234,14 +236,21 @@ class KnitImgApp(ctk.CTk):
             except Exception as e:
                 native_messagebox("error", "Error", f"Failed to open image:\n{e}")
 
-    def display_image(self, img, label_widget, default_text=""):
+    def display_image(self, img, label_widget, default_text="", size_ref=None):
         if img is None:
             label_widget.configure(image="", text=default_text)
             return
 
-        # Always update to fit within a bounding box approximately the size of the label frame
-        # Make a thumbnail so we do not distort AR but fit it into a box
-        display_size = (300, 400) # Reasonable max display size for canvas
+        # Measure the label widget to determine how much space is available
+        label_widget.update_idletasks()
+        w = label_widget.winfo_width()
+        h = label_widget.winfo_height()
+        
+        # Sensible fallbacks during startup before layout is complete
+        display_width = w if w > 50 else 300
+        display_height = h if h > 50 else 400
+            
+        display_size = (display_width, display_height)
         img_copy = img.copy()
         
         # For '1' mode (B&W or Palette), convert back to RGB to display properly in tk/ctk
@@ -346,7 +355,7 @@ class KnitImgApp(ctk.CTk):
                 img = img.convert("RGB")
 
         self.processed_image = img
-        self.display_image(self.processed_image, self.result_label, "Result Image")
+        self.display_image(self.processed_image, self.result_label, "Result Image", self.result_label)
         self.export_btn.configure(state="normal")
 
     def export_image(self):
