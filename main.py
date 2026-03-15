@@ -106,14 +106,12 @@ class KnitImgApp(ctk.CTk):
         self.original_label.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 
     def setup_middle_panel(self):
-        self.mid_frame = ctk.CTkFrame(self)
+        self.mid_frame = ctk.CTkScrollableFrame(self, label_text="Functions", label_font=ctk.CTkFont(size=20, weight="bold"))
         self.mid_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
         self.mid_frame.grid_columnconfigure(0, weight=1)
         
         row_idx = 0
         
-        ctk.CTkLabel(self.mid_frame, text="Functions", font=ctk.CTkFont(size=20, weight="bold")).grid(row=row_idx, column=0, pady=20)
-        row_idx += 1
         
         # 1. Rotate
         self.rotate_var = ctk.BooleanVar(value=False)
