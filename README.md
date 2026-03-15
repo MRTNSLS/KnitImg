@@ -16,7 +16,6 @@ You can directly download the compiled standalone application from the **[Releas
 - **Windows**: [KnitImg-windows-x64.zip](../../releases/latest/download/KnitImg-windows-x64.zip)
 - **macOS**:
   - [KnitImg-macos-arm64.tar.gz](../../releases/latest/download/KnitImg-macos-arm64.tar.gz) (Apple Silicon)
-  - [KnitImg-macos-x64.tar.gz](../../releases/latest/download/KnitImg-macos-x64.tar.gz) (Intel)
 - **Linux**:
   - [KnitImg-linux-x64.tar.gz](../../releases/latest/download/KnitImg-linux-x64.tar.gz)
   - [KnitImg-linux-arm64.tar.gz](../../releases/latest/download/KnitImg-linux-arm64.tar.gz)
