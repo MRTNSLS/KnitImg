@@ -6,6 +6,7 @@ import os
 import sys
 import subprocess
 import numpy as np
+import threading
 
 def native_askopenfilename(**kwargs):
     if sys.platform.startswith("linux"):
@@ -224,6 +225,11 @@ class KnitImgApp(ctk.CTk):
         self.result_label = ctk.CTkLabel(self.right_frame, text="Result Image", fg_color="gray30", corner_radius=6)
         self.result_label.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 
+        # Loading overlay (initially hidden)
+        self.loading_overlay = ctk.CTkFrame(self.right_frame, fg_color="black", corner_radius=6)
+        # We'll use place to overlay it precisely on top of the result_label when needed
+        ctk.CTkLabel(self.loading_overlay, text="Computing... Please wait", font=ctk.CTkFont(size=16, weight="bold"), text_color="white").place(relx=0.5, rely=0.5, anchor="center")
+
     def choose_color(self, idx):
         # Initial color for chooser
         initial_color = '#%02x%02x%02x' % self.color_values[idx]
@@ -279,104 +285,124 @@ class KnitImgApp(ctk.CTk):
             native_messagebox("warning", "Warning", "Please import an image first.")
             return
 
-        img = self.original_image.copy()
+        # Show loading indicator and disable buttons
+        self.apply_btn.configure(state="disabled", text="Processing...")
+        self.import_btn.configure(state="disabled")
+        self.export_btn.configure(state="disabled")
         
-        # 1. Rotate
-        if self.rotate_var.get():
-            angle_str = self.rotate_option.get()
-            if angle_str == "90":
-                img = img.transpose(Image.Transpose.ROTATE_270) # 90 degrees clockwise
-            elif angle_str == "180":
-                img = img.transpose(Image.Transpose.ROTATE_180) # 180 degrees
-            elif angle_str == "270":
-                img = img.transpose(Image.Transpose.ROTATE_90)  # 270 degrees clockwise = 90 deg CCW
+        # Overlay the loading frame
+        self.loading_overlay.place(relx=0.5, rely=0.5, anchor="center", relwidth=0.8, relheight=0.4)
+        self.loading_overlay.lift()
 
-        # 2. Mirror
-        if self.mirror_var.get():
-            mirror_str = self.mirror_option.get()
-            if mirror_str == "Left-Right":
-                img = img.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
-            elif mirror_str == "Top-Bottom":
-                img = img.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+        # Run processing in a background thread
+        thread = threading.Thread(target=self._process_image_worker, daemon=True)
+        thread.start()
 
-        # 3. Scale
-        if self.scale_var.get():
-            try:
-                max_width = int(self.scale_width_entry.get())
-                if max_width <= 0: raise ValueError
-            except ValueError:
-                native_messagebox("error", "Error", "Max width must be a positive integer.")
-                return
-                
-            original_width, original_height = img.size
-            if original_width != max_width or self.shrink_var.get(): # Always scale to the requested width
-                ratio = max_width / float(original_width)
-                new_height = int(float(original_height) * float(ratio))
-                
-                if self.shrink_var.get():
-                    try:
-                        factor = float(self.shrink_factor_entry.get())
-                        if factor <= 0: raise ValueError
-                    except ValueError:
-                        native_messagebox("error", "Error", "Vertical shrink factor must be a positive number.")
-                        return
-                    new_height = int(new_height / factor)
-                    
-                # Prevent height from resolving to 0
-                new_height = max(1, new_height)
-                img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
-
-        # 4. Reduce Colors
-        if self.reduce_var.get():
-            dither_mode_str = self.reduce_dither_option.get()
+    def _process_image_worker(self):
+        """Heavy lifting done here in background thread."""
+        try:
+            img = self.original_image.copy()
             
-            # Composite onto white background in case of transparent pixels
-            if img.mode == 'RGBA':
-                background = Image.new('RGB', img.size, (255, 255, 255))
-                alpha = img.split()[3]
-                background.paste(img, mask=alpha)
-                img = background
-            elif img.mode != 'RGB':
-                img = img.convert('RGB')
-                
-            # Gather active colors
-            active_colors = []
-            for i in range(6):
-                if self.color_vars[i].get():
-                    active_colors.append(self.color_values[i])
-                    
-            if not active_colors:
-                native_messagebox("warning", "Warning", "Reduce Colors is enabled but no colors are selected. Skipping step.")
-            else:
-                # Create a 1x1 base P mode image
-                base_p = Image.new("P", (1, 1))
-                # Flat list of r,g,b values
-                palette_data = []
-                for color in active_colors:
-                    palette_data.extend(color)
-                    
-                # Pad to 256 colors (768 flat list items)
-                # Pillow requires a full 256 color palette to quantize against
-                while len(palette_data) < 768:
-                    palette_data.extend(active_colors[0]) # Pad with the first chosen color
-                    
-                base_p.putpalette(palette_data)
-                
-                # Apply quantization
-                if dither_mode_str in ["Floyd-Steinberg", "None"]:
-                    # Use native Pillow for these (optimized)
-                    dither_flag = Image.Dither.FLOYDSTEINBERG if dither_mode_str == "Floyd-Steinberg" else Image.Dither.NONE
-                    img = img.quantize(palette=base_p, dither=dither_flag)
-                else:
-                    # Apply custom dithering algorithms
-                    img = self.run_custom_dithering(img, active_colors, dither_mode_str)
-                
-                # Convert back to RGB for display purposes
-                img = img.convert("RGB")
+            # 1. Rotate
+            if self.rotate_var.get():
+                angle_str = self.rotate_option.get()
+                if angle_str == "90":
+                    img = img.transpose(Image.Transpose.ROTATE_270) # 90 degrees clockwise
+                elif angle_str == "180":
+                    img = img.transpose(Image.Transpose.ROTATE_180) # 180 degrees
+                elif angle_str == "270":
+                    img = img.transpose(Image.Transpose.ROTATE_90)  # 270 degrees clockwise = 90 deg CCW
 
+            # 2. Mirror
+            if self.mirror_var.get():
+                mirror_str = self.mirror_option.get()
+                if mirror_str == "Left-Right":
+                    img = img.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+                elif mirror_str == "Top-Bottom":
+                    img = img.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+
+            # 3. Scale
+            if self.scale_var.get():
+                try:
+                    max_width = int(self.scale_width_entry.get())
+                    if max_width <= 0: raise ValueError
+                except ValueError:
+                    self.after(0, lambda: native_messagebox("error", "Error", "Max width must be a positive integer."))
+                    self.after(0, self._reset_ui_after_processing)
+                    return
+                    
+                original_width, original_height = img.size
+                if original_width != max_width or self.shrink_var.get(): 
+                    ratio = max_width / float(original_width)
+                    new_height = int(float(original_height) * float(ratio))
+                    
+                    if self.shrink_var.get():
+                        try:
+                            factor = float(self.shrink_factor_entry.get())
+                            if factor <= 0: raise ValueError
+                        except ValueError:
+                            self.after(0, lambda: native_messagebox("error", "Error", "Vertical shrink factor must be a positive number."))
+                            self.after(0, self._reset_ui_after_processing)
+                            return
+                        new_height = int(new_height / factor)
+                        
+                    new_height = max(1, new_height)
+                    img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
+
+            # 4. Reduce Colors
+            if self.reduce_var.get():
+                dither_mode_str = self.reduce_dither_option.get()
+                
+                if img.mode == 'RGBA':
+                    background = Image.new('RGB', img.size, (255, 255, 255))
+                    alpha = img.split()[3]
+                    background.paste(img, mask=alpha)
+                    img = background
+                elif img.mode != 'RGB':
+                    img = img.convert('RGB')
+                    
+                active_colors = []
+                for i in range(6):
+                    if self.color_vars[i].get():
+                        active_colors.append(self.color_values[i])
+                        
+                if not active_colors:
+                    self.after(0, lambda: native_messagebox("warning", "Warning", "Reduce Colors enabled but no colors selected."))
+                else:
+                    base_p = Image.new("P", (1, 1))
+                    palette_data = []
+                    for color in active_colors:
+                        palette_data.extend(color)
+                    while len(palette_data) < 768:
+                        palette_data.extend(active_colors[0])
+                    base_p.putpalette(palette_data)
+                    
+                    if dither_mode_str in ["Floyd-Steinberg", "None"]:
+                        dither_flag = Image.Dither.FLOYDSTEINBERG if dither_mode_str == "Floyd-Steinberg" else Image.Dither.NONE
+                        img = img.quantize(palette=base_p, dither=dither_flag)
+                    else:
+                        img = self.run_custom_dithering(img, active_colors, dither_mode_str)
+                    
+                    img = img.convert("RGB")
+
+            # Finalize on main thread
+            self.after(0, lambda: self._finalize_processing(img))
+            
+        except Exception as e:
+            self.after(0, lambda err=e: native_messagebox("error", "Error", f"Processing failed:\n{err}"))
+            self.after(0, self._reset_ui_after_processing)
+
+    def _finalize_processing(self, img):
         self.processed_image = img
         self.display_image(self.processed_image, self.result_label, "Result Image")
-        self.export_btn.configure(state="normal")
+        self._reset_ui_after_processing()
+
+    def _reset_ui_after_processing(self):
+        self.loading_overlay.place_forget()
+        self.apply_btn.configure(state="normal", text="Apply Functions")
+        self.import_btn.configure(state="normal")
+        if self.processed_image is not None:
+            self.export_btn.configure(state="normal")
 
     def run_custom_dithering(self, img, palette, mode):
         """Custom error diffusion dithering implementation using NumPy."""
