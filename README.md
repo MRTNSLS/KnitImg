@@ -40,6 +40,19 @@ python main.py
 
 > **Tip:** Click the **✎ Edit** button on any color to choose a new custom color from the full-spectrum picker.
 
+## Understanding Dithering
+
+Choosing the right dithering algorithm can significantly impact how your image translates to yarn.
+
+| Algorithm | Best For... | Description |
+| :--- | :--- | :--- |
+| **Atkinson** | Detailed Patterns | **Recommended.** High contrast and clean highlights. Avoids the "muddy" look and is excellent for machine knitting. |
+| **Ordered (Bayer)** | Geometric Designs | Uses a fixed matrix to create predictable, structured textures. Great for a "pixel art" or retro feel. |
+| **Floyd-Steinberg** | Smooth Gradients | The standard algorithm. Good for general photos but can sometimes create "noise" in light areas. |
+| **Stucki / J-J-N** | High Detail | Large-kernel algorithms that produce very smooth transitions. Good for complex photographic images. |
+| **Sierra / Lite** | Speed & Balance | A middle ground. Sierra Lite is very fast and works well for most simple designs. |
+| **None** | Hard Edges | No dithering. Colors are mapped directly to the closest palette match. |
+
 
 If you want to build the standalone executables yourself, use the provided `build.bat` (Windows) or `build.sh` (Linux/macOS) scripts.
 
