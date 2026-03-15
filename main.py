@@ -75,7 +75,7 @@ class KnitImgApp(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("KnitImg - Machine Knitting Image Assistant")
-        self.geometry("1000x650")
+        self.geometry("1000x780")
         
         # Configure grid layout (3 columns)
         self.grid_columnconfigure(0, weight=1)
