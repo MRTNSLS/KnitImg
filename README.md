@@ -3,10 +3,13 @@ A cross-platform helper program to modify images to be used with machine knittin
 
 KnitImg allows you to import an image and sequentially apply:
 - **Rotations** (90, 180, 270 degrees)
-- **Scaling** (Resize by maximum width, and optionally shrink vertically to account for rectangular knitting stitch dimensions)
+- **Scaling** (Resize by maximum width, and optionally shrink vertically to account for non-rectangular knitting stitch dimensions)
 - **Reduce Colors** (Convert the image to a custom palette of up to 6 selectable colors, with or without dithering)
 
 Once processed, you can export your optimized design for knitting directly to a PNG.
+
+## Online option
+There's an online version here: **[https://knitimg.streamlit.app/](https://knitimg.streamlit.app/)**
 
 ## Installation 
 
