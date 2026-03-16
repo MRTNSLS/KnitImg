@@ -174,7 +174,7 @@ class KnitImgApp(ctk.CTk):
         self.scale_width_entry.grid(row=0, column=1, padx=10, pady=5, sticky="w")
         
         self.stretch_var = ctk.BooleanVar(value=False)
-        self.stretch_cb = ctk.CTkCheckBox(scale_param_frame, text="Stretch Vertically?", variable=self.stretch_var)
+        self.stretch_cb = ctk.CTkCheckBox(scale_param_frame, text="Compensate for non-rectangular stitches?", variable=self.stretch_var)
         self.stretch_cb.grid(row=1, column=0, columnspan=2, pady=(10, 5), sticky="w")
         
         ctk.CTkLabel(scale_param_frame, text="Vertical Factor:").grid(row=2, column=0, pady=5, sticky="w")
