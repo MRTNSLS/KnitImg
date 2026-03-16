@@ -5,7 +5,7 @@ class ImageProcessor:
     @staticmethod
     def process(img, rotate_enabled=False, rotate_angle="90", 
                 mirror_enabled=False, mirror_mode="Left-Right",
-                scale_enabled=False, max_width=200, shrink_enabled=False, shrink_factor=1.5,
+                scale_enabled=False, max_width=200, stretch_enabled=False, stretch_factor=1.5,
                 reduce_enabled=False, dither_mode="Floyd-Steinberg", active_colors=None):
         """
         Core image processing engine.
@@ -36,12 +36,12 @@ class ImageProcessor:
         # 3. Scale
         if scale_enabled:
             original_width, original_height = processed.size
-            if original_width != max_width or shrink_enabled:
+            if original_width != max_width or stretch_enabled:
                 ratio = max_width / float(original_width)
                 new_height = int(float(original_height) * float(ratio))
                 
-                if shrink_enabled:
-                    new_height = int(new_height / shrink_factor)
+                if stretch_enabled:
+                    new_height = int(new_height * stretch_factor)
                 
                 new_height = max(1, new_height)
                 processed = processed.resize((max_width, new_height), Image.Resampling.LANCZOS)

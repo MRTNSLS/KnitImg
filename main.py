@@ -173,14 +173,14 @@ class KnitImgApp(ctk.CTk):
         self.scale_width_entry.insert(0, "200")
         self.scale_width_entry.grid(row=0, column=1, padx=10, pady=5, sticky="w")
         
-        self.shrink_var = ctk.BooleanVar(value=False)
-        self.shrink_cb = ctk.CTkCheckBox(scale_param_frame, text="Shrink Vertically?", variable=self.shrink_var)
-        self.shrink_cb.grid(row=1, column=0, columnspan=2, pady=(10, 5), sticky="w")
+        self.stretch_var = ctk.BooleanVar(value=False)
+        self.stretch_cb = ctk.CTkCheckBox(scale_param_frame, text="Stretch Vertically?", variable=self.stretch_var)
+        self.stretch_cb.grid(row=1, column=0, columnspan=2, pady=(10, 5), sticky="w")
         
         ctk.CTkLabel(scale_param_frame, text="Vertical Factor:").grid(row=2, column=0, pady=5, sticky="w")
-        self.shrink_factor_entry = ctk.CTkEntry(scale_param_frame, width=80)
-        self.shrink_factor_entry.insert(0, "1.5")
-        self.shrink_factor_entry.grid(row=2, column=1, padx=10, pady=5, sticky="w")
+        self.stretch_factor_entry = ctk.CTkEntry(scale_param_frame, width=80)
+        self.stretch_factor_entry.insert(0, "1.5")
+        self.stretch_factor_entry.grid(row=2, column=1, padx=10, pady=5, sticky="w")
         
         # 4. Reduce Colors
         self.reduce_var = ctk.BooleanVar(value=False)
@@ -342,9 +342,9 @@ class KnitImgApp(ctk.CTk):
                 max_width = 200 # Fallback
                 
             try:
-                shrink_factor = float(self.shrink_factor_entry.get())
+                stretch_factor = float(self.stretch_factor_entry.get())
             except ValueError:
-                shrink_factor = 1.5 # Fallback
+                stretch_factor = 1.5 # Fallback
 
             # Use the shared engine
             img = ImageProcessor.process(
@@ -355,8 +355,8 @@ class KnitImgApp(ctk.CTk):
                 mirror_mode=self.mirror_option.get(),
                 scale_enabled=self.scale_var.get(),
                 max_width=max_width,
-                shrink_enabled=self.shrink_var.get(),
-                shrink_factor=shrink_factor,
+                stretch_enabled=self.stretch_var.get(),
+                stretch_factor=stretch_factor,
                 reduce_enabled=self.reduce_var.get(),
                 dither_mode=self.reduce_dither_option.get(),
                 active_colors=active_colors

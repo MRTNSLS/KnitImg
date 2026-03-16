@@ -66,8 +66,8 @@ if uploaded_file is not None:
         st.write("### 3. Scaling")
         scale_enabled = st.checkbox("Enable Scaling", value=True)
         max_width = st.number_input("Max Width (px)", min_value=10, max_value=2000, value=200, step=10, disabled=not scale_enabled)
-        shrink_enabled = st.checkbox("Account for Rectangular Stitches", value=False, disabled=not scale_enabled)
-        shrink_factor = st.number_input("Vertical Shrink Factor", min_value=0.1, max_value=5.0, value=1.5, step=0.1, disabled=not (scale_enabled and shrink_enabled))
+        stretch_enabled = st.checkbox("Account for Rectangular Stitches", value=False, disabled=not scale_enabled)
+        stretch_factor = st.number_input("Vertical Stretch Factor", min_value=0.1, max_value=5.0, value=1.5, step=0.1, disabled=not (scale_enabled and stretch_enabled))
         
         st.divider()
         
@@ -115,8 +115,8 @@ if uploaded_file is not None:
                 mirror_mode=mirror_mode,
                 scale_enabled=scale_enabled,
                 max_width=max_width,
-                shrink_enabled=shrink_enabled,
-                shrink_factor=shrink_factor,
+                stretch_enabled=stretch_enabled,
+                stretch_factor=stretch_factor,
                 reduce_enabled=reduce_enabled,
                 dither_mode=dither_mode,
                 active_colors=active_colors if active_colors else None
