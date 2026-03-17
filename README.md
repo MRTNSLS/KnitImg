@@ -8,8 +8,9 @@ KnitImg allows you to import an image and sequentially apply:
 
 Once processed, you can export your optimized design for knitting directly to a PNG.
 
-## Online option
-There's an online version here: **[https://knitimg.streamlit.app/](https://knitimg.streamlit.app/)**
+## Online Version
+The easiest way to use KnitImg is via the web! No installation required.
+**[https://knitimg.streamlit.app/](https://knitimg.streamlit.app/)**
 
 ## Installation 
 
@@ -21,16 +22,10 @@ You can directly download the compiled standalone application from the **[Releas
 
 > **Note for macOS Users:** Standalone binaries for macOS are currently unavailable. Please run **From Source** (see below) or use the **Online Prototype**.
 
-### Online Version
-The easiest way to use KnitImg is via the web! No installation required.
-
-- **[Visit KnitImg Online (Hosted App)](#)** *(Add your hosted URL here)*
 
 ---
 
----
 
-Just download, extract, and run!
 
 ### From Source
 Requires Python 3.12+ 
