@@ -17,9 +17,9 @@ There's an online version here: **[https://knitimg.streamlit.app/](https://kniti
 You can directly download the compiled standalone application from the **[Releases](../../releases)** page.
 
 - **Windows**: [KnitImg-windows-x64.zip](../../releases/latest/download/KnitImg-windows-x64.zip)
-- **macOS**:
-  - [KnitImg-macos-arm64.tar.gz](../../releases/latest/download/KnitImg-macos-arm64.tar.gz) (Apple Silicon)
 - **Linux**: [KnitImg-linux-x64.tar.gz](../../releases/latest/download/KnitImg-linux-x64.tar.gz) / [KnitImg-linux-arm64.tar.gz](../../releases/latest/download/KnitImg-linux-arm64.tar.gz)
+
+> **Note for macOS Users:** Standalone binaries for macOS are currently unavailable. Please run **From Source** (see below) or use the **Online Prototype**.
 
 ### Online Prototype (Streamlit)
 You can also run a web-based version of KnitImg! This is perfect for quick tests or for users who cannot run the standalone application.
@@ -36,6 +36,13 @@ Just download, extract, and run!
 
 ### From Source
 Requires Python 3.12+ 
+
+**macOS Tip:** You may need to install `python-tk` via Homebrew if you haven't already:
+```bash
+brew install python-tk
+```
+
+**Build and Run:**
 ```bash
 git clone https://github.com/MRTNSLS/KnitImg.git
 cd KnitImg
