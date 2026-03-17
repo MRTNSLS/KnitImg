@@ -21,14 +21,12 @@ You can directly download the compiled standalone application from the **[Releas
 
 > **Note for macOS Users:** Standalone binaries for macOS are currently unavailable. Please run **From Source** (see below) or use the **Online Prototype**.
 
-### Online Prototype (Streamlit)
-You can also run a web-based version of KnitImg! This is perfect for quick tests or for users who cannot run the standalone application.
+### Online Version
+The easiest way to use KnitImg is via the web! No installation required.
 
-To run locally:
-1. `pip install -r requirements.txt`
-2. `streamlit run streamlit_app.py`
+- **[Visit KnitImg Online (Hosted App)](#)** *(Add your hosted URL here)*
 
-This will open the application in your default web browser.
+---
 
 ---
 
@@ -37,17 +35,22 @@ Just download, extract, and run!
 ### From Source
 Requires Python 3.12+ 
 
-**macOS Tip:** You may need to install `python-tk` via Homebrew if you haven't already:
+**macOS Tip:** You may need to install `python-tk` via Homebrew:
 ```bash
 brew install python-tk
 ```
 
-**Build and Run:**
+**Build and Run (Desktop App):**
 ```bash
 git clone https://github.com/MRTNSLS/KnitImg.git
 cd KnitImg
 pip install -r requirements.txt
 python main.py
+```
+
+**Run Web App Locally:**
+```bash
+streamlit run streamlit_app.py
 ```
 
 ## How to Use
